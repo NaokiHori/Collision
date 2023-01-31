@@ -1,0 +1,72 @@
+name: CI
+
+on:
+
+  push:
+    branches:
+      - main
+    paths:
+      - src/**
+      - include/**
+      - .github/workflows/**
+
+jobs:
+
+  build-and-execute:
+    name: Build library and execute
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@main
+        with:
+          repository: 'NaokiHori/Collision'
+          ref: ${{ github.ref_name }}
+      - name: Install dependencies
+        run: |
+          sudo apt-get -y update && \
+          sudo apt-get -y install make
+      - name: Initialise particles
+        run: |
+          cd input/RandomGenerator
+          make all
+          sh exec.sh
+      - name: Compile
+        run: |
+          make output
+          make all
+      - name: Run
+        run: |
+          sh exec.sh
+
+  check-memory-leak:
+    name: Detect memory leak using Valgrind
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@main
+        with:
+          repository: 'NaokiHori/Collision'
+          ref: ${{ github.ref_name }}
+      - name: Install dependencies
+        run: |
+          sudo apt-get -y update && \
+          sudo apt-get -y install make valgrind
+      - name: Initialise particles
+        run: |
+          cd input/RandomGenerator
+          make all
+          # replace last line to exec with valgrind
+          head -n -1 exec.sh > tmp.sh
+          source tmp.sh
+          valgrind --leak-check=full -s ./a.out
+      - name: Compile and run
+        run: |
+          make output
+          make all
+          # replace last line to exec with valgrind
+          head -n -1 exec.sh > tmp.sh
+          source tmp.sh
+          # override tmax
+          export tmax=10.
+          valgrind --leak-check=full -s ./a.out
+
