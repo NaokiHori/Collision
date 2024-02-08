@@ -1,0 +1,22 @@
+[package]
+name = "collision"
+version = "0.1.0"
+authors = ["Naoki Hori"]
+description = "Event-driven collision simulator"
+repository = "https://github.com/NaokiHori/Collision"
+edition = "2021"
+publish = false
+license-file = "LICENSE"
+
+[[bin]]
+name = "collision"
+path = "src/main.rs"
+
+[lib]
+crate-type = ["cdylib"]
+path = "src/lib.rs"
+
+[dependencies]
+js-sys = { version = "0.3.67" }
+web-sys = { version = "0.3.67", features = ["CanvasRenderingContext2d", "Document", "HtmlCanvasElement", "Window", ] }
+wasm-bindgen = { version = "0.2.90" }

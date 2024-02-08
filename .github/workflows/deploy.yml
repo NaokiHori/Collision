@@ -1,0 +1,73 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - Cargo.toml
+      - index.html
+      - src/**
+      - style.css
+      - tsconfig.json
+      - typescript/**
+  workflow_dispatch:
+
+jobs:
+
+  deploy:
+    name: Deploy page
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: "pages"
+      cancel-in-progress: true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@main
+      - name: Setup node
+        uses: actions/setup-node@main
+      - name: Install TypeScript
+        run: |
+          npm install -g typescript
+      - name: Install wasm-pack
+        run: |
+          cargo install wasm-pack
+      - name: Perform unit tests
+        run: |
+          cargo test --bin=collision
+          cargo test --lib
+      - name: Build and execute binary crate
+        run: |
+          cargo run --release
+      - name: Build library crate
+        run: |
+          dest="built"
+          wasm-pack build --target web
+          mkdir ${dest}
+          cp pkg/*.js ${dest}/
+          cp pkg/*.wasm ${dest}/
+          cp pkg/*.ts typescript/
+          tsc --outDir ${dest}
+      - name: Prepare directory to be deployed
+        run: |
+          mkdir package
+          cp -r \
+            style.css thumbnail.jpg index.html built \
+            package/
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@main
+      - name: Upload HTML
+        uses: actions/upload-pages-artifact@main
+        with:
+          path: package
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@main
+
