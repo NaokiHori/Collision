@@ -41,11 +41,12 @@ Several URL parameters are optionally available:
 
 * ``rate``: draw rate (the smaller the smoother but the more demanding)
 
-The default configuration is equivalent to ``length = 192``, ``nitems = 8192``, and ``rate = 0.25``, namely:
+The default configuration is equivalent to ``length = 192``, ``nitems = 8192``, and ``rate = 0.05``, namely:
 
-``https://naokihori.github.io/Collision/index.html?length=192&nitems=8192&rate=0.25``.
+``https://naokihori.github.io/Collision/index.html?length=192&nitems=8192&rate=0.05``.
 
-Note that the particle radii are fixed to ``0.5`` for now.
+The particle radii are fixed to ``0.5`` for now, and the restitution coefficient between particles is set to ``0.99``.
+I assume the domain is squared-shape and the periodic and wall-bounded conditions are imposed in the horizontal and the vertical directions, respectively.
 Also, the number of particles is clipped if the volume fraction exceeds ``40%``.
 
 ******
