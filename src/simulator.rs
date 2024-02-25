@@ -28,11 +28,11 @@ pub struct Simulator {
 }
 
 impl Simulator {
-    pub fn new(sync_rate: f64, lengths: [f64; NDIMS], nparticles: usize) -> Simulator {
+    pub fn new(sync_rate: f64, lengths: [f64; NDIMS], nparticles: usize, seed: f64) -> Simulator {
         let time: f64 = 0.;
         let (ncells, cells): ([usize; NDIMS], Vec<Rc<RefCell<Cell>>>) = cell::init_cells(&lengths);
         let particles: Vec<Rc<RefCell<Particle>>> =
-            particle::init_particles(&lengths, &ncells, &cells, nparticles, time);
+            particle::init_particles(&lengths, &ncells, &cells, nparticles, time, seed);
         let mut scheduler = Scheduler::new(&cells);
         event::init_events(&lengths, &cells, &mut scheduler);
         Simulator {

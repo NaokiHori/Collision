@@ -14,9 +14,9 @@ pub struct Collision {
 
 #[wasm_bindgen::prelude::wasm_bindgen]
 impl Collision {
-    pub fn new(length: f64, nitems: usize, rate: f64) -> Collision {
+    pub fn new(length: f64, nitems: usize, rate: f64, seed: f64) -> Collision {
         let lengths: [f64; NDIMS] = [length, length];
-        let simulator = Simulator::new(rate, lengths, nitems);
+        let simulator = Simulator::new(rate, lengths, nitems, seed);
         let drawer = Drawer::new();
         Collision { simulator, drawer }
     }

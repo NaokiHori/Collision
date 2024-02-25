@@ -39,13 +39,8 @@ impl Scheduler {
     }
 
     /// Updates heap.
-    pub fn update(
-        &mut self,
-        cell_index: usize,
-        event_bef: &Rc<RefCell<Event>>,
-        event_aft: &Rc<RefCell<Event>>,
-    ) {
-        if event_bef.borrow().time < event_aft.borrow().time {
+    pub fn update(&mut self, cell_index: usize, time_bef: f64, time_aft: f64) {
+        if time_bef < time_aft {
             self.downshift(self.lookups[cell_index]);
         } else {
             self.upshift(self.lookups[cell_index]);
@@ -62,12 +57,12 @@ impl Scheduler {
         }
         let cell: &Rc<RefCell<Cell>> = &heap[index];
         let cell: Ref<Cell> = cell.borrow();
-        let events: &Rc<RefCell<Vec<Rc<RefCell<Event>>>>> = &cell.events;
-        let events: Ref<Vec<Rc<RefCell<Event>>>> = events.borrow();
+        let events: &Rc<RefCell<Vec<Event>>> = &cell.events;
+        let events: Ref<Vec<Event>> = events.borrow();
         let data: f64 = if events.is_empty() {
             f64::MAX
         } else {
-            events[0].borrow().time
+            events[0].time
         };
         data
     }

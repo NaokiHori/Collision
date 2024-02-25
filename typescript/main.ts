@@ -31,12 +31,12 @@ window.addEventListener(`load`, () => {
     // all things which should be done before iterating
     const length: number = get_and_set(`length`, 192., 8., 1024.);
     const nitems: number = get_and_set(`nitems`, 8192, 2, 32768);
-    const rate: number = get_and_set(`rate`, 5e-2, 1e-4, 1e3);
+    const rate: number = get_and_set(`rate`, 1e-1, 1e-4, 1e3);
     console.log(`length: ${length.toExponential()}`);
     console.log(`number of particles: ${nitems}`);
     console.log(`draw rate: ${rate}`);
     // initialise simulator and drawer
-    collision_obj = Collision.new(length, nitems, rate);
+    collision_obj = Collision.new(length, nitems, rate, Math.random());
     // initialise window / canvas size
     collision_obj.update_canvas_size();
     // register it to an event handler

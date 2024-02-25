@@ -13,19 +13,22 @@ pub struct Particle {
     pub pos: MyVec,
     pub vel: MyVec,
     pub time: f64,
-    pub cell_indices: Vec<usize>,
+    pub cells: Vec<Rc<RefCell<Cell>>>,
     pub val: f64,
 }
 
 #[allow(dead_code)]
-fn check_duplication(p: &Particle, cells: &[usize]) {
+fn check_duplication(p: &Particle, cells: &[Rc<RefCell<Cell>>]) {
     // check no duplication
-    for (n, c) in cells.iter().enumerate() {
-        for d in cells[n + 1..].iter() {
-            if c == d {
+    for (n, c0) in cells.iter().enumerate() {
+        for c1 in cells[n + 1..].iter() {
+            if Rc::ptr_eq(c0, c1) {
                 panic!(
                     "cell {} is duplicated for particle {} at ({}, {})",
-                    c, p.index, p.pos[0], p.pos[1]
+                    c0.borrow().index,
+                    p.index,
+                    p.pos[0],
+                    p.pos[1]
                 );
             }
         }
@@ -33,19 +36,19 @@ fn check_duplication(p: &Particle, cells: &[usize]) {
 }
 
 impl Particle {
-    pub fn append(&mut self, index: usize) {
-        self.cell_indices.push(index);
+    pub fn append(&mut self, cell: &Rc<RefCell<Cell>>) {
+        self.cells.push(cell.clone());
         if cfg!(debug_assertions) {
-            check_duplication(self, &self.cell_indices);
+            check_duplication(self, &self.cells);
         }
     }
 
-    pub fn remove(&mut self, index: usize) {
-        let cell_indices: &mut Vec<usize> = &mut self.cell_indices;
-        let position: usize = cell_indices.iter().position(|&n| n == index).unwrap();
-        cell_indices.remove(position);
+    pub fn remove(&mut self, cell: &Rc<RefCell<Cell>>) {
+        let cells: &mut Vec<Rc<RefCell<Cell>>> = &mut self.cells;
+        let position: usize = cells.iter().position(|c| Rc::ptr_eq(c, cell)).unwrap();
+        cells.remove(position);
         if cfg!(debug_assertions) {
-            check_duplication(self, &self.cell_indices);
+            check_duplication(self, &self.cells);
         }
     }
 
@@ -64,7 +67,7 @@ impl Particle {
     }
 }
 
-pub fn from_p_to_c(
+fn from_p_to_c(
     lengths: &[f64; NDIMS],
     ncells: &[usize; NDIMS],
     rad: f64,
@@ -234,6 +237,7 @@ pub fn init_particles(
     cells: &[Rc<RefCell<Cell>>],
     mut nitems: usize,
     time: f64,
+    seed: f64,
 ) -> Vec<Rc<RefCell<Particle>>> {
     // fixed parameters
     let rad: f64 = 0.5;
@@ -258,7 +262,7 @@ pub fn init_particles(
             }
         }
     }
-    let mut rng = Random::new(1u64.wrapping_shl(0));
+    let mut rng = Random::new((seed * f64::MAX) as u64);
     let mut particles = Vec::<Rc<RefCell<Particle>>>::new();
     for index in 0..nitems {
         // find a proper position for a particle without overlapping
@@ -315,12 +319,19 @@ pub fn init_particles(
             pos,
             vel,
             time,
-            cell_indices: cell_indices.clone(),
+            cells: {
+                let mut cs = Vec::<Rc<RefCell<Cell>>>::new();
+                for &cell_index in cell_indices.iter() {
+                    let cell: Rc<RefCell<Cell>> = cells[cell_index].clone();
+                    cs.push(cell);
+                }
+                cs
+            },
             val,
         }));
         // add particle to the local list for each cell
-        for &index in cell_indices.iter() {
-            let cell: Ref<Cell> = cells[index].borrow();
+        for &cell_index in cell_indices.iter() {
+            let cell: Ref<Cell> = cells[cell_index].borrow();
             let mut ps: RefMut<Vec<Rc<RefCell<Particle>>>> = cell.particles.borrow_mut();
             ps.push(particle.clone());
         }

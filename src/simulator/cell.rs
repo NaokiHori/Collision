@@ -9,7 +9,7 @@ use crate::simulator::NDIMS;
 /// Reference cell size.
 ///
 /// N.B.: This is a "typical" size of a cell and is not necessarily the exact size.
-///       For safety give 4 times larger than the radius of particles.
+///       For safety give more than 4 times larger than the radius of particles.
 const CELL_SIZE: f64 = 3.;
 
 /// Used to take into account the periodicity.
@@ -23,7 +23,7 @@ pub struct Cell {
     pub index: usize,
     pub bounds: [Extrema<f64>; NDIMS],
     pub particles: Rc<RefCell<Vec<Rc<RefCell<Particle>>>>>,
-    pub events: Rc<RefCell<Vec<Rc<RefCell<Event>>>>>,
+    pub events: Rc<RefCell<Vec<Event>>>,
     pub positions: [CellPosition; NDIMS],
     pub neighbours: [Extrema<usize>; NDIMS],
 }
@@ -171,7 +171,7 @@ pub fn init_cells(lengths: &[f64; NDIMS]) -> ([usize; NDIMS], Vec<Rc<RefCell<Cel
             },
         ];
         let particles = Rc::new(RefCell::new(Vec::<Rc<RefCell<Particle>>>::new()));
-        let events = Rc::new(RefCell::new(Vec::<Rc<RefCell<Event>>>::new()));
+        let events = Rc::new(RefCell::new(Vec::<Event>::new()));
         let positions: [CellPosition; NDIMS] = [
             if 0 == i {
                 CellPosition::NegativeEdge

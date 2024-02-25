@@ -1,32 +1,56 @@
 use std::cell::{Ref, RefCell, RefMut};
 use std::rc::Rc;
 
+use crate::simulator::cell::Cell;
 use crate::simulator::particle::{find_minimum_distance, Particle};
+use crate::simulator::scheduler::Scheduler;
 use crate::simulator::NDIMS;
 
-use super::{Event, EventType, Synchronisation};
+use super::{Event, EventType};
 
-pub fn schedule(time: f64) -> Event {
-    let event = Synchronisation {};
-    Event {
-        time,
-        eventtype: EventType::Synchronisation(event),
+pub struct Synchronisation {
+    /// The cell in which this event happens.
+    cell: Rc<RefCell<Cell>>,
+}
+
+impl Synchronisation {
+    pub fn schedule(time: f64, cell: &Rc<RefCell<Cell>>) -> Event {
+        let event = Synchronisation { cell: cell.clone() };
+        Event {
+            time,
+            eventtype: EventType::Synchronisation(event),
+        }
+    }
+
+    pub fn execute(
+        &self,
+        lengths: &[f64; NDIMS],
+        time: f64,
+        sync_rate: f64,
+        particles: &[Rc<RefCell<Particle>>],
+        scheduler: &mut Scheduler,
+    ) {
+        // update all particles
+        for particle in particles.iter() {
+            let mut p: RefMut<Particle> = particle.borrow_mut();
+            p.pos = Particle::get_new_pos(lengths, p.pos, p.vel, time - p.time);
+            p.time = time;
+        }
+        // schedule next synchronisation
+        super::insert_event(
+            Synchronisation::schedule(time + sync_rate, &self.cell),
+            &self.cell,
+            scheduler,
+        );
+        // check stats, only for binary crate without optimisation
+        if cfg!(debug_assertions) {
+            check_energy(time, particles);
+            check_distance(lengths, time, particles);
+        }
     }
 }
 
-pub fn execute(lengths: &[f64; NDIMS], time: f64, particles: &[Rc<RefCell<Particle>>]) {
-    // update all particles
-    for particle in particles.iter() {
-        let mut p: RefMut<Particle> = particle.borrow_mut();
-        p.pos = Particle::get_new_pos(lengths, p.pos, p.vel, time - p.time);
-        p.time = time;
-    }
-    check_energy(time, particles);
-    if cfg!(debug_assertions) {
-        check_distance(lengths, time, particles);
-    }
-}
-
+#[allow(dead_code)]
 fn check_energy(time: f64, particles: &[Rc<RefCell<Particle>>]) {
     // compute total energy
     let mut energy: f64 = 0.;
@@ -56,6 +80,7 @@ fn check_distance(lengths: &[f64; NDIMS], time: f64, particles: &[Rc<RefCell<Par
     save("distance.dat", &content);
 }
 
+#[allow(dead_code)]
 fn save(filename: &str, content: &str) {
     let mut file: std::fs::File = match std::fs::OpenOptions::new()
         .append(true)
