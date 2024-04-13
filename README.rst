@@ -2,7 +2,7 @@
 `Collision <https://naokihori.github.io/Collision/index.html>`_
 ###############################################################
 
-|License|_ |LastCommit|_ |Deploy|_
+|License| |LastCommit| |Deploy|
 
 .. |License| image:: https://img.shields.io/github/license/NaokiHori/Collision
 .. _License: https://opensource.org/licenses/MIT

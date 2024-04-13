@@ -9,7 +9,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use cell::Cell;
-use particle::Particle;
+pub use particle::Particle;
 use scheduler::Scheduler;
 
 // TODO: for now only 2 is available
