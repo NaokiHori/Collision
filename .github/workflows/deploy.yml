@@ -38,10 +38,12 @@ jobs:
           wasm-pack build --target web
       - name: Build web application
         run: |
+          npm run check
           npx \
             vite build \
             --outDir=${{ env.ASSETS }} \
             --base=https://naokihori.github.io/Collision/
+          cp thumbnail.jpg ${{ env.ASSETS }}/
       - name: Setup GitHub Pages
         uses: actions/configure-pages@main
       - name: Upload HTML

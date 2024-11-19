@@ -7,6 +7,9 @@ use crate::simulator::cell::Cell;
 use crate::simulator::extrema::Extrema;
 use crate::simulator::{NDIMS, PERIODICITIES};
 
+/// Particle radius, to be consistent with the cell size.
+pub const RADIUS: f64 = 0.5f64;
+
 pub struct Particle {
     pub index: usize,
     pub rad: f64,
@@ -239,8 +242,7 @@ pub fn init_particles(
     time: f64,
     seed: f64,
 ) -> Vec<Rc<RefCell<Particle>>> {
-    // fixed parameters
-    let rad: f64 = 0.5;
+    let rad: f64 = RADIUS;
     nitems = {
         let max_vfrac: f64 = 0.4;
         let max_nitems: f64 =

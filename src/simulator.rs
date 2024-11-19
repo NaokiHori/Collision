@@ -19,7 +19,6 @@ pub const PERIODICITIES: [bool; NDIMS] = [true, false];
 
 pub struct Simulator {
     lengths: [f64; NDIMS],
-    ncells: [usize; NDIMS],
     time: f64,
     sync_rate: f64,
     particles: Vec<Rc<RefCell<Particle>>>,
@@ -37,7 +36,6 @@ impl Simulator {
         event::init_events(&lengths, &cells, &mut scheduler);
         Simulator {
             lengths,
-            ncells,
             time,
             sync_rate,
             particles,
@@ -56,18 +54,12 @@ impl Simulator {
         );
     }
 
-    #[allow(dead_code)]
-    pub fn get_lengths(&self) -> &[f64; NDIMS] {
-        &self.lengths
-    }
-
-    #[allow(dead_code)]
     pub fn get_particles(&self) -> &Vec<Rc<RefCell<Particle>>> {
         &self.particles
     }
+}
 
-    #[allow(dead_code)]
-    pub fn get_ncells(&self) -> &[usize; NDIMS] {
-        &self.ncells
-    }
+pub fn radius() -> f64 {
+    use particle::RADIUS;
+    RADIUS
 }

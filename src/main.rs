@@ -16,8 +16,6 @@ fn main() {
     let lengths: [f64; NDIMS] = [800., 800.];
     let nparticles: usize = 65536;
     let mut simulator = Simulator::new(sync_rate, lengths, nparticles, SEED);
-    let ncells: &[usize; NDIMS] = simulator.get_ncells();
-    println!("number of cells: ({}, {})", ncells[0], ncells[1]);
     loop {
         simulator.integrate();
         time += sync_rate;
@@ -37,6 +35,7 @@ fn save_particles(lengths: &[f64; NDIMS], simulator: &Simulator) -> Result<(), (
     for p in particles.iter() {
         let p: Ref<Particle> = p.borrow();
         let pos: &MyVec = &p.pos;
+        let _radius: f64 = simulator::radius();
         let index: usize = (pos[1] / lengths[1] * canvas_size[1] as f64) as usize * canvas_size[0]
             + (pos[0] / lengths[0] * canvas_size[0] as f64) as usize;
         fit(p.val, &mut pixels[3 * index..3 * index + 3]);

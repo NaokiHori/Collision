@@ -17,6 +17,4 @@ crate-type = ["cdylib"]
 path = "src/lib.rs"
 
 [dependencies]
-js-sys = { version = "0.3.67" }
-web-sys = { version = "0.3.67", features = ["CanvasRenderingContext2d", "Document", "HtmlCanvasElement", "Window", ] }
 wasm-bindgen = { version = "0.2.95" }
