@@ -39,10 +39,7 @@ fn save_particles(lengths: &[f64; NDIMS], simulator: &Simulator) -> Result<(), (
         let pos: &MyVec = &p.pos;
         let index: usize = (pos[1] / lengths[1] * canvas_size[1] as f64) as usize * canvas_size[0]
             + (pos[0] / lengths[0] * canvas_size[0] as f64) as usize;
-        let color: [u8; 3] = fit(p.val);
-        pixels[3 * index + 0] = color[0];
-        pixels[3 * index + 1] = color[1];
-        pixels[3 * index + 2] = color[2];
+        fit(p.val, &mut pixels[3 * index..3 * index + 3]);
     }
     {
         let fname: &str = "image.ppm";
@@ -146,16 +143,14 @@ fn save_particles(lengths: &[f64; NDIMS], simulator: &Simulator) -> Result<(), (
     Ok(())
 }
 
-fn fit(val: f64) -> [u8; 3] {
+fn fit(val: f64, rgb: &mut [u8]) {
     const PI: f64 = std::f64::consts::PI;
-    let rgb: [f64; 3] = [
+    let rgb_f64: [f64; 3] = [
         0.5 * (1. + (2. * PI * (val + 0. / 3.)).sin()),
         0.5 * (1. + (2. * PI * (val + 1. / 3.)).sin()),
         0.5 * (1. + (2. * PI * (val + 2. / 3.)).sin()),
     ];
-    return [
-        (255. * rgb[0]) as u8,
-        (255. * rgb[1]) as u8,
-        (255. * rgb[2]) as u8,
-    ];
+    rgb[0] = (255. * rgb_f64[0]) as u8;
+    rgb[1] = (255. * rgb_f64[1]) as u8;
+    rgb[2] = (255. * rgb_f64[2]) as u8;
 }

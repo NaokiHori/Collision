@@ -76,55 +76,6 @@ fn get_neighbour_1_pos(ncells: &[usize; NDIMS], index: usize) -> usize {
     }
 }
 
-#[cfg(test)]
-mod test_get_neighbour {
-    use super::get_neighbour_0_neg;
-    use super::get_neighbour_0_pos;
-    use super::get_neighbour_1_neg;
-    use super::get_neighbour_1_pos;
-    use crate::simulator::NDIMS;
-    #[test]
-    fn case1() {
-        let ncells: [usize; NDIMS] = [3, 2];
-        assert_eq!(get_neighbour_0_neg(&ncells, 0), 2);
-        assert_eq!(get_neighbour_0_neg(&ncells, 1), 0);
-        assert_eq!(get_neighbour_0_neg(&ncells, 2), 1);
-        assert_eq!(get_neighbour_0_neg(&ncells, 3), 5);
-        assert_eq!(get_neighbour_0_neg(&ncells, 4), 3);
-        assert_eq!(get_neighbour_0_neg(&ncells, 5), 4);
-    }
-    #[test]
-    fn case2() {
-        let ncells: [usize; NDIMS] = [3, 2];
-        assert_eq!(get_neighbour_0_pos(&ncells, 0), 1);
-        assert_eq!(get_neighbour_0_pos(&ncells, 1), 2);
-        assert_eq!(get_neighbour_0_pos(&ncells, 2), 0);
-        assert_eq!(get_neighbour_0_pos(&ncells, 3), 4);
-        assert_eq!(get_neighbour_0_pos(&ncells, 4), 5);
-        assert_eq!(get_neighbour_0_pos(&ncells, 5), 3);
-    }
-    #[test]
-    fn case3() {
-        let ncells: [usize; NDIMS] = [3, 2];
-        assert_eq!(get_neighbour_1_neg(&ncells, 0), 3);
-        assert_eq!(get_neighbour_1_neg(&ncells, 1), 4);
-        assert_eq!(get_neighbour_1_neg(&ncells, 2), 5);
-        assert_eq!(get_neighbour_1_neg(&ncells, 3), 0);
-        assert_eq!(get_neighbour_1_neg(&ncells, 4), 1);
-        assert_eq!(get_neighbour_1_neg(&ncells, 5), 2);
-    }
-    #[test]
-    fn case4() {
-        let ncells: [usize; NDIMS] = [3, 2];
-        assert_eq!(get_neighbour_1_pos(&ncells, 0), 3);
-        assert_eq!(get_neighbour_1_pos(&ncells, 1), 4);
-        assert_eq!(get_neighbour_1_pos(&ncells, 2), 5);
-        assert_eq!(get_neighbour_1_pos(&ncells, 3), 0);
-        assert_eq!(get_neighbour_1_pos(&ncells, 4), 1);
-        assert_eq!(get_neighbour_1_pos(&ncells, 5), 2);
-    }
-}
-
 impl Cell {
     pub fn append(&mut self, p: &Rc<RefCell<Particle>>) {
         {
@@ -209,4 +160,53 @@ pub fn init_cells(lengths: &[f64; NDIMS]) -> ([usize; NDIMS], Vec<Rc<RefCell<Cel
         cells.push(Rc::new(RefCell::new(cell)));
     }
     (ncells, cells)
+}
+
+#[cfg(test)]
+mod test_get_neighbour {
+    use super::get_neighbour_0_neg;
+    use super::get_neighbour_0_pos;
+    use super::get_neighbour_1_neg;
+    use super::get_neighbour_1_pos;
+    use crate::simulator::NDIMS;
+    #[test]
+    fn case1() {
+        let ncells: [usize; NDIMS] = [3, 2];
+        assert_eq!(get_neighbour_0_neg(&ncells, 0), 2);
+        assert_eq!(get_neighbour_0_neg(&ncells, 1), 0);
+        assert_eq!(get_neighbour_0_neg(&ncells, 2), 1);
+        assert_eq!(get_neighbour_0_neg(&ncells, 3), 5);
+        assert_eq!(get_neighbour_0_neg(&ncells, 4), 3);
+        assert_eq!(get_neighbour_0_neg(&ncells, 5), 4);
+    }
+    #[test]
+    fn case2() {
+        let ncells: [usize; NDIMS] = [3, 2];
+        assert_eq!(get_neighbour_0_pos(&ncells, 0), 1);
+        assert_eq!(get_neighbour_0_pos(&ncells, 1), 2);
+        assert_eq!(get_neighbour_0_pos(&ncells, 2), 0);
+        assert_eq!(get_neighbour_0_pos(&ncells, 3), 4);
+        assert_eq!(get_neighbour_0_pos(&ncells, 4), 5);
+        assert_eq!(get_neighbour_0_pos(&ncells, 5), 3);
+    }
+    #[test]
+    fn case3() {
+        let ncells: [usize; NDIMS] = [3, 2];
+        assert_eq!(get_neighbour_1_neg(&ncells, 0), 3);
+        assert_eq!(get_neighbour_1_neg(&ncells, 1), 4);
+        assert_eq!(get_neighbour_1_neg(&ncells, 2), 5);
+        assert_eq!(get_neighbour_1_neg(&ncells, 3), 0);
+        assert_eq!(get_neighbour_1_neg(&ncells, 4), 1);
+        assert_eq!(get_neighbour_1_neg(&ncells, 5), 2);
+    }
+    #[test]
+    fn case4() {
+        let ncells: [usize; NDIMS] = [3, 2];
+        assert_eq!(get_neighbour_1_pos(&ncells, 0), 3);
+        assert_eq!(get_neighbour_1_pos(&ncells, 1), 4);
+        assert_eq!(get_neighbour_1_pos(&ncells, 2), 5);
+        assert_eq!(get_neighbour_1_pos(&ncells, 3), 0);
+        assert_eq!(get_neighbour_1_pos(&ncells, 4), 1);
+        assert_eq!(get_neighbour_1_pos(&ncells, 5), 2);
+    }
 }
