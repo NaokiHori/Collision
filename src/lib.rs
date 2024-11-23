@@ -19,8 +19,8 @@ pub struct Collision {
 #[wasm_bindgen]
 impl Collision {
     #[wasm_bindgen(constructor)]
-    pub fn new(length: f64, nitems: usize, rate: f64, seed: f64) -> Collision {
-        let lengths: [f64; NDIMS] = [length, length];
+    pub fn new(width: f64, height: f64, nitems: usize, rate: f64, seed: f64) -> Collision {
+        let lengths: [f64; NDIMS] = [width, height];
         let simulator = Simulator::new(rate, lengths, nitems, seed);
         let positions = vec![0f32; nitems * NDIMS];
         let temperatures = vec![0f32; nitems];

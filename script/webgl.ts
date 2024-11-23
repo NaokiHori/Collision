@@ -1,3 +1,10 @@
+import {
+  InitOutput,
+  Collision,
+  radius as getParticleRadius,
+} from "../pkg/collision";
+import { Timer } from "./timer";
+import { syncCanvasSize } from "./dom";
 import { getContext, WebGLContext } from "./webgl/context";
 import { initProgram } from "./webgl/program";
 import { initVBO } from "./webgl/vbo";
@@ -14,13 +21,18 @@ export class WebGLObjects {
 
   constructor(
     canvas: HTMLCanvasElement,
-    length: number,
+    domainWidth: number,
+    domainHeight: number,
     nitems: number,
     radius: number,
   ) {
     const gl: WebGLContext = getContext(canvas);
     const program = initProgram(gl, vertexShaderSource, fragmentShaderSource);
-    gl.uniform1f(gl.getUniformLocation(program, "u_length"), length);
+    gl.uniform2f(
+      gl.getUniformLocation(program, "u_domain"),
+      domainWidth,
+      domainHeight,
+    );
     gl.uniform1f(gl.getUniformLocation(program, "u_diameter"), 2 * radius);
     const handleResizeEvent = initResizeEvent(gl, program);
     const positionsVBO = initVBO({
@@ -70,4 +82,65 @@ export function checkWebGLAvailability(): boolean {
   const gl: WebGLRenderingContext | null = canvas.getContext("webgl");
   canvas.remove();
   return null !== gl;
+}
+
+export function webGLDrawer({
+  wasm,
+  canvasAspectRatio,
+  container,
+  canvas,
+  domainWidth,
+  domainHeight,
+  nitems,
+  rate,
+}: {
+  wasm: InitOutput;
+  canvasAspectRatio: number;
+  container: HTMLDivElement;
+  canvas: HTMLCanvasElement;
+  domainWidth: number;
+  domainHeight: number;
+  nitems: number;
+  rate: number;
+}) {
+  const collision = new Collision(
+    domainWidth,
+    domainHeight,
+    nitems,
+    rate,
+    Math.random(),
+  );
+  const radius = getParticleRadius();
+  const webGLObjects = new WebGLObjects(
+    canvas,
+    domainWidth,
+    domainHeight,
+    nitems,
+    radius,
+  );
+  const timer = new Timer(1000);
+  function updateAndDraw() {
+    collision.update();
+    const positions = new Float32Array(
+      wasm.memory.buffer,
+      collision.positions(),
+      nitems * "xy".length,
+    );
+    const temperatures = new Float32Array(
+      wasm.memory.buffer,
+      collision.temperatures(),
+      nitems,
+    );
+    webGLObjects.draw(nitems, positions, temperatures);
+    timer.update();
+    requestAnimationFrame(updateAndDraw);
+  }
+  window.addEventListener("resize", () => {
+    syncCanvasSize(canvasAspectRatio, container, canvas);
+    webGLObjects.handleResizeEvent(canvas);
+  });
+  syncCanvasSize(canvasAspectRatio, container, canvas);
+  webGLObjects.handleResizeEvent(canvas);
+  timer.start();
+  updateAndDraw();
 }

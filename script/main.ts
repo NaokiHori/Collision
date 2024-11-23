@@ -1,126 +1,69 @@
-import wbgInit, {
-  Collision,
-  InitOutput,
-  radius as getParticleRadius,
-} from "../pkg";
-import { WebGLObjects, checkWebGLAvailability } from "./webgl";
+import wbgInit, { InitOutput } from "../pkg";
+import { checkWebGLAvailability, webGLDrawer } from "./webgl";
+import { canvas2dDrawer } from "./canvas2d";
 import { getNumber } from "./urlSearchParams";
-import { getCanvasElement, syncCanvasSize } from "./dom";
-import { Timer } from "./timer";
+import { getCanvasElement, getDivElement } from "./dom";
 
-function canvas2dDrawer({
-  wasm,
-  canvas,
-  length,
-  nitems,
-  rate,
-}: {
-  wasm: InitOutput;
-  canvas: HTMLCanvasElement;
-  length: number;
-  nitems: number;
-  rate: number;
-}) {
-  const collision = new Collision(length, nitems, rate, Math.random());
-  const radius = getParticleRadius();
-  const ctx: CanvasRenderingContext2D = (function () {
-    const ctx: CanvasRenderingContext2D | null = canvas.getContext("2d");
-    if (null === ctx) {
-      throw new Error("failed to get context");
-    }
-    return ctx;
-  })();
-  const timer = new Timer(1000);
-  function updateAndDraw() {
-    collision.update();
-    const positions = new Float32Array(
-      wasm.memory.buffer,
-      collision.positions(),
-      nitems * "xy".length,
-    );
-    const ratio = canvas.width / length;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.imageSmoothingEnabled = false;
-    ctx.fillStyle = "#ffffff";
-    ctx.beginPath();
-    for (let index = 0; index < nitems; index++) {
-      const x: number = ratio * positions[2 * index + 0];
-      const y: number = ratio * positions[2 * index + 1];
-      const r: number = ratio * radius;
-      ctx.moveTo(x, y);
-      ctx.arc(x, y, r, 0, 2 * Math.PI);
-    }
-    ctx.fill();
-    timer.update();
-    requestAnimationFrame(updateAndDraw);
+function decideDomainLengths(container: HTMLDivElement): {
+  domainWidth: number;
+  domainHeight: number;
+} {
+  const rect: DOMRect = container.getBoundingClientRect();
+  const canvasAspectRatio: number = rect.width / rect.height;
+  const length: number = getNumber("length", 256, 16, 1024);
+  if (canvasAspectRatio < 1) {
+    const domainWidth: number = length * canvasAspectRatio;
+    const domainHeight: number = length;
+    return { domainWidth, domainHeight };
+  } else {
+    const domainWidth: number = length;
+    const domainHeight: number = length / canvasAspectRatio;
+    return { domainWidth, domainHeight };
   }
-  window.addEventListener("resize", () => {
-    syncCanvasSize(canvas);
-  });
-  syncCanvasSize(canvas);
-  timer.start();
-  updateAndDraw();
-}
-
-function webGLDrawer({
-  wasm,
-  canvas,
-  length,
-  nitems,
-  rate,
-}: {
-  wasm: InitOutput;
-  canvas: HTMLCanvasElement;
-  length: number;
-  nitems: number;
-  rate: number;
-}) {
-  const collision = new Collision(length, nitems, rate, Math.random());
-  const radius = getParticleRadius();
-  const webGLObjects = new WebGLObjects(canvas, length, nitems, radius);
-  const timer = new Timer(1000);
-  function updateAndDraw() {
-    collision.update();
-    const positions = new Float32Array(
-      wasm.memory.buffer,
-      collision.positions(),
-      nitems * "xy".length,
-    );
-    const temperatures = new Float32Array(
-      wasm.memory.buffer,
-      collision.temperatures(),
-      nitems,
-    );
-    webGLObjects.draw(nitems, positions, temperatures);
-    timer.update();
-    requestAnimationFrame(updateAndDraw);
-  }
-  window.addEventListener("resize", () => {
-    syncCanvasSize(canvas);
-    webGLObjects.handleResizeEvent(canvas);
-  });
-  syncCanvasSize(canvas);
-  webGLObjects.handleResizeEvent(canvas);
-  timer.start();
-  updateAndDraw();
 }
 
 async function main() {
+  const container: HTMLDivElement = getDivElement("canvas-container");
+  const canvas: HTMLCanvasElement = getCanvasElement("my-canvas");
+  const { domainWidth, domainHeight } = decideDomainLengths(container);
+  const canvasAspectRatio: number = domainWidth / domainHeight;
   const wasm: InitOutput = await wbgInit();
-  const length: number = getNumber("length", 256, 16, 1024);
-  const nitems: number = getNumber("nitems", 8192, 2, 32768);
-  const rate: number = getNumber("rate", 1e-1, 1e-4, 1e3);
-  console.log(`length: ${length.toExponential()}`);
+  const nitems: number = getNumber(
+    "nitems",
+    Math.round((domainWidth * domainHeight) / 6),
+    2,
+    32768,
+  );
+  const rate: number = getNumber("rate", 5e-2, 1e-4, 1e3);
+  console.log(`domain width: ${domainWidth.toString()}`);
+  console.log(`domain height: ${domainHeight.toString()}`);
   console.log(`number of particles: ${nitems.toString()}`);
   console.log(`draw rate: ${rate.toString()}`);
-  const canvas: HTMLCanvasElement = getCanvasElement();
   const isWebGLAvailable: boolean = checkWebGLAvailability();
   if (isWebGLAvailable) {
     console.log("Use WebGL Drawer");
-    webGLDrawer({ wasm, canvas, length, nitems, rate });
+    webGLDrawer({
+      wasm,
+      canvasAspectRatio,
+      container,
+      canvas,
+      domainWidth,
+      domainHeight,
+      nitems,
+      rate,
+    });
   } else {
     console.log("Use Canvas2D Drawer");
-    canvas2dDrawer({ wasm, canvas, length, nitems, rate });
+    canvas2dDrawer({
+      wasm,
+      canvasAspectRatio,
+      container,
+      canvas,
+      domainWidth,
+      domainHeight,
+      nitems,
+      rate,
+    });
   }
 }
 
