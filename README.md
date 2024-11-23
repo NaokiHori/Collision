@@ -10,7 +10,7 @@
 
 ## Overview
 
-Event-driven simulation of many colliding particles.
+Event-driven simulator of many colliding particles.
 
 ## Quick start
 
@@ -18,19 +18,16 @@ Visit [the main page](https://naokihori.github.io/Collision/index.html).
 
 Several URL parameters are optionally available:
 
-- `length`: size of the domain
+- `length`: size of the domain (shorter one of screen width / height)
 - `nitems`: number of particles
 - `rate`: draw rate (the smaller the smoother but the more demanding)
 
-The default configuration is equivalent to:
+The default configuration is equivalent to `length = 256`, and `rate = 0.05`.
+The number of particles `nitems` is given by `width * height / 6` by default to reasonably populate the domain, and it is clamped to enforce the volume fraction less than `40%` even when a huge value is assigned.
 
-`length = 192`, `nitems = 8192`, and `rate = 0.1`, namely:
-
-`https://naokihori.github.io/Collision/index.html?length=192&nitems=8192&rate=0.1`.
-
-Currently, the particle radii are fixed at `0.5`, and the restitution coefficient between particles is set to `0.99`.
-The domain is assumed to be square-shaped, with periodic boundary conditions in the horizontal direction and wall-bounded conditions in the vertical direction.
-The number of particles is clipped if the volume fraction exceeds `40%`.
+The domain is assumed to be periodic in the horizontal direction and wall-bounded conditions are imposed in the vertical direction.
+The particle radii are fixed at `0.5`, and the restitution coefficient between particles is set to `0.99`.
+Each particle stores `temperature`-like information which are exchanged on the collision events, which is to mimic thermal convections by giving pseudo buoyancy force in the vertical direction.
 
 ## Method
 

@@ -11,8 +11,8 @@ void main (void) {
     discard;
   } else {
     // internal
-    float r = v_color < 0.5 ? 1. : 2. - 2. * v_color;
-    float g = v_color < 0.5 ? 2. * v_color : 1.;
+    float r = v_color < 0.5 ? 1. : 2. - 4. * v_color * v_color;
+    float g = v_color < 0.5 ? 4. * v_color * v_color : 1.;
     float b = 1.;
     gl_FragColor = vec4(r, g, b, 1.);
   }
