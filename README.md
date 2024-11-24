@@ -18,7 +18,7 @@ Visit [the main page](https://naokihori.github.io/Collision/index.html).
 
 Several URL parameters are optionally available:
 
-- `length`: size of the domain (the longer of the *screen width* and the *screen height* on load)
+- `length`: size of the domain (the longer of the _screen width_ and the _screen height_ on load)
 - `nitems`: number of particles
 - `rate`: draw rate (the smaller the smoother but the more demanding)
 

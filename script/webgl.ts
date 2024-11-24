@@ -9,8 +9,10 @@ import { getContext, WebGLContext } from "./webgl/context";
 import { initProgram } from "./webgl/program";
 import { initVBO } from "./webgl/vbo";
 import { initResizeEvent } from "./webgl/resizeEvent";
-import vertexShaderSource from "../shader/vertexShader.glsl?raw";
-import fragmentShaderSource from "../shader/fragmentShader.glsl?raw";
+import vertexShaderSourceES2 from "../shader/vertexShader.es2.glsl?raw";
+import fragmentShaderSourceES2 from "../shader/fragmentShader.es2.glsl?raw";
+import vertexShaderSourceES3 from "../shader/vertexShader.es3.glsl?raw";
+import fragmentShaderSourceES3 from "../shader/fragmentShader.es3.glsl?raw";
 
 export class WebGLObjects {
   gl: WebGLContext;
@@ -27,7 +29,12 @@ export class WebGLObjects {
     radius: number,
   ) {
     const gl: WebGLContext = getContext(canvas);
-    const program = initProgram(gl, vertexShaderSource, fragmentShaderSource);
+    const isGL2: boolean = gl instanceof WebGL2RenderingContext;
+    const program = initProgram(
+      gl,
+      isGL2 ? vertexShaderSourceES3 : vertexShaderSourceES2,
+      isGL2 ? fragmentShaderSourceES3 : fragmentShaderSourceES2,
+    );
     gl.uniform2f(
       gl.getUniformLocation(program, "u_domain"),
       domainWidth,
