@@ -18,7 +18,7 @@ Visit [the main page](https://naokihori.github.io/Collision/index.html).
 
 Several URL parameters are optionally available:
 
-- `length`: size of the domain (shorter one of screen width / height)
+- `length`: size of the domain (the longer of the *screen width* and the *screen height* on load)
 - `nitems`: number of particles
 - `rate`: draw rate (the smaller the smoother but the more demanding)
 
@@ -32,7 +32,7 @@ Each particle stores `temperature`-like information which are exchanged on the c
 ## Method
 
 In this project, I aim at simulating finite-sized particles following Newtonian mechanics with overlaps prohibited.
-To this end, I need to properly detect all inter-particle collisions, which inherently requires `O(N_p^2)` operations, where N_p is the number of particles.
+To this end, I need to properly detect all inter-particle collisions, which inherently requires `O(N_p^2)` operations, where `N_p` is the number of particles.
 It is necessary to reduce this cost in order to handle, say, millions of particles.
 
 1. **Event-driven approach**
@@ -46,8 +46,8 @@ It is necessary to reduce this cost in order to handle, say, millions of particl
 1. **Cell method**
 
    To only consider nearby particles, the domain is split into many cells using the so-called cell method.
-   This reduces the cost to `O(N_p^2 / N_c)`, where N_c is the number of cells.
-   Since N_c can be chosen arbitrarily, the cost to detect collisions results in `O(1)`.
+   This reduces the cost to `O(N_p^2 / N_c)`, where `N_c` is the number of cells.
+   Since `N_c` can be chosen arbitrarily, the cost to detect collisions results in `O(1)`.
    However, cell-particle events (particles passing through cell boundaries) also need to be considered.
    The cost to update events for each step remains `O(1)`.
 
@@ -60,6 +60,30 @@ It is necessary to reduce this cost in order to handle, say, millions of particl
 
    Updating particle positions and velocities requires `O(N_p)` operations, and doing this process for each step is verbose.
    This is mitigated by introducing particle-based local time so that particles are only updated when they are involved.
+
+## Try locally
+
+Install the following:
+
+- [`npm`](https://www.npmjs.com)
+- [`rust`](https://www.rust-lang.org)
+- [`cargo`](https://doc.rust-lang.org/stable/cargo/)
+- [`wasm-pack`](https://rustwasm.github.io/wasm-pack/)
+
+Build all:
+
+```bash
+npm install
+wasm-pack build --release --target web
+```
+
+Launch a server:
+
+```
+npm run dev
+```
+
+Visit `http://localhost:5173`.
 
 ## Acknowledgement
 
