@@ -16,14 +16,16 @@ Event-driven simulator of many colliding particles.
 
 Visit [the main page](https://naokihori.github.io/Collision/index.html).
 
-Several URL parameters are optionally available:
+Several URL parameters are optionally available on initializing the solver:
 
-- `length`: size of the domain (the longer of the _screen width_ and the _screen height_ on load)
+- `length`: size of the domain (the longer of the domain width and the domain height)
+- `aspect-ratio`: the ratio of the domain width to the domain height.
 - `nitems`: number of particles
 - `rate`: draw rate (the smaller the smoother but the more demanding)
 
-The default configuration is equivalent to `length = 256`, and `rate = 0.05`.
-The number of particles `nitems` is given by `width * height / 6` by default to reasonably populate the domain, and it is clamped to enforce the volume fraction less than `40%` even when a huge value is assigned.
+The default values (`length = 256`, `rate = 0.05`, `aspect-ratio` being identical to the screen aspect) are used if the corresponding parameter is not specified.
+The number of particles `nitems` is given by `width * height / 6` by default to reasonably populate the domain.
+Note that it is clamped to enforce the volume fraction being less than `40%`, even when a huge value is assigned.
 
 The domain is assumed to be periodic in the horizontal direction and wall-bounded conditions are imposed in the vertical direction.
 The particle radii are fixed at `0.5`, and the restitution coefficient between particles is set to `0.99`.

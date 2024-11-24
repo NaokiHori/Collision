@@ -9,7 +9,12 @@ function decideDomainLengths(container: HTMLDivElement): {
   domainHeight: number;
 } {
   const rect: DOMRect = container.getBoundingClientRect();
-  const canvasAspectRatio: number = rect.width / rect.height;
+  const canvasAspectRatio: number = getNumber(
+    "aspect-ratio",
+    rect.width / rect.height,
+    1e-2,
+    1e2,
+  );
   const length: number = getNumber("length", 256, 16, 1024);
   if (canvasAspectRatio < 1) {
     const domainWidth: number = length * canvasAspectRatio;
