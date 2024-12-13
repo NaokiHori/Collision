@@ -41,6 +41,16 @@ export class WebGLObjects {
       domainHeight,
     );
     gl.uniform1f(gl.getUniformLocation(program, "u_diameter"), 2 * radius);
+    (function setPointSizeRange() {
+      const pointSizeRange: Float32Array = gl.getParameter(
+        gl.ALIASED_POINT_SIZE_RANGE,
+      ) as Float32Array;
+      gl.uniform2f(
+        gl.getUniformLocation(program, "u_point_size_range"),
+        pointSizeRange[0],
+        pointSizeRange[1],
+      );
+    })();
     const handleResizeEvent = initResizeEvent(gl, program);
     const positionsVBO = initVBO({
       nitems,
