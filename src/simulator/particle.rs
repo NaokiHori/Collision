@@ -5,7 +5,7 @@ use crate::myvec::MyVec;
 use crate::random::Random;
 use crate::simulator::cell::Cell;
 use crate::simulator::extrema::Extrema;
-use crate::simulator::{NDIMS, PERIODICITIES};
+use crate::simulator::{Domain, NDIMS};
 
 /// Particle radius, to be consistent with the cell size.
 pub const RADIUS: f64 = 0.5f64;
@@ -55,7 +55,8 @@ impl Particle {
         }
     }
 
-    pub fn get_new_pos(lengths: &[f64; NDIMS], pos: MyVec, vel: MyVec, dt: f64) -> MyVec {
+    pub fn get_new_pos(domain: &Domain, pos: MyVec, vel: MyVec, dt: f64) -> MyVec {
+        let lengths: &[f64; NDIMS] = &domain.lengths;
         // x^{n+1} = x^n + v * dt
         let mut new_pos: MyVec = pos + vel * dt;
         // correct periodicity
@@ -191,7 +192,8 @@ mod test_from_p_to_c {
 }
 
 /// Finds minimum distance between two points, taking periodicity into account.
-pub fn find_minimum_distance(lengths: &[f64; NDIMS], pos0: MyVec, pos1: MyVec) -> f64 {
+pub fn find_minimum_distance(domain: &Domain, pos0: MyVec, pos1: MyVec) -> f64 {
+    let lengths: &[f64; NDIMS] = &domain.lengths;
     let dpos: MyVec = pos1 - pos0;
     let mut dist: f64 = 0.;
     for dim in 0..NDIMS {
@@ -207,41 +209,56 @@ pub fn find_minimum_distance(lengths: &[f64; NDIMS], pos0: MyVec, pos1: MyVec) -
 mod test_find_minimum_distance {
     use super::find_minimum_distance;
     use crate::myvec::MyVec;
-    use crate::simulator::NDIMS;
+    use crate::simulator::{Domain, NDIMS};
+    const PERIODICITIES: [bool; NDIMS] = [true, true];
+
     #[test]
     fn case1() {
         // normal case, 3:4:5
-        const LENGTHS: [f64; NDIMS] = [32., 32.];
+        let domain = Domain {
+            lengths: [32., 32.],
+            periodicities: PERIODICITIES,
+        };
         let pos0: MyVec = MyVec::new([1., 2.]);
         let pos1: MyVec = MyVec::new([4., 6.]);
-        assert_eq!(find_minimum_distance(&LENGTHS, pos0, pos1), 5.);
+        assert_eq!(find_minimum_distance(&domain, pos0, pos1), 5.);
     }
+
     #[test]
     fn case2() {
         // case with periodicity
-        const LENGTHS: [f64; NDIMS] = [32., 32.];
+        let domain = Domain {
+            lengths: [32., 32.],
+            periodicities: PERIODICITIES,
+        };
         let pos0: MyVec = MyVec::new([0., 0.]);
-        let pos1: MyVec = MyVec::new([0., LENGTHS[1]]);
-        assert_eq!(find_minimum_distance(&LENGTHS, pos0, pos1), 0.);
+        let pos1: MyVec = MyVec::new([0., domain.lengths[1]]);
+        assert_eq!(find_minimum_distance(&domain, pos0, pos1), 0.);
     }
+
     #[test]
     fn case3() {
         // case with periodicity
-        const LENGTHS: [f64; NDIMS] = [32., 32.];
+        let domain = Domain {
+            lengths: [32., 32.],
+            periodicities: PERIODICITIES,
+        };
         let pos0: MyVec = MyVec::new([0., 0.]);
-        let pos1: MyVec = MyVec::new([LENGTHS[0], LENGTHS[1]]);
-        assert_eq!(find_minimum_distance(&LENGTHS, pos0, pos1), 0.);
+        let pos1: MyVec = MyVec::new([domain.lengths[0], domain.lengths[1]]);
+        assert_eq!(find_minimum_distance(&domain, pos0, pos1), 0.);
     }
 }
 
 pub fn init_particles(
-    lengths: &[f64; NDIMS],
+    domain: &Domain,
     ncells: &[usize; NDIMS],
     cells: &[Rc<RefCell<Cell>>],
     mut nitems: usize,
     time: f64,
     seed: f64,
 ) -> Vec<Rc<RefCell<Particle>>> {
+    let lengths: &[f64; NDIMS] = &domain.lengths;
+    let periodicities: &[bool; NDIMS] = &domain.periodicities;
     let rad: f64 = RADIUS;
     nitems = {
         let max_vfrac: f64 = 0.4;
@@ -273,8 +290,8 @@ pub fn init_particles(
             // choose position randomly
             let pos0: MyVec = {
                 let x: f64 = {
-                    let min: f64 = if PERIODICITIES[0] { 0. } else { rad };
-                    let max: f64 = if PERIODICITIES[0] {
+                    let min: f64 = if periodicities[0] { 0. } else { rad };
+                    let max: f64 = if periodicities[0] {
                         lengths[0]
                     } else {
                         lengths[0] - rad
@@ -282,8 +299,8 @@ pub fn init_particles(
                     rng.gen_range(min, max)
                 };
                 let y: f64 = {
-                    let min: f64 = if PERIODICITIES[1] { 0. } else { rad };
-                    let max: f64 = if PERIODICITIES[1] {
+                    let min: f64 = if periodicities[1] { 0. } else { rad };
+                    let max: f64 = if periodicities[1] {
                         lengths[1]
                     } else {
                         lengths[1] - rad
@@ -301,7 +318,7 @@ pub fn init_particles(
                 for p in ps.iter() {
                     let p: Ref<Particle> = p.borrow();
                     let pos1: MyVec = p.pos;
-                    let dist: f64 = find_minimum_distance(lengths, pos0, pos1);
+                    let dist: f64 = find_minimum_distance(domain, pos0, pos1);
                     if dist < 2. * rad {
                         continue 'find_no_overlap;
                     }

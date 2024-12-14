@@ -6,7 +6,7 @@ use crate::simulator::cell::{Cell, CellPosition};
 use crate::simulator::extrema::Extrema;
 use crate::simulator::particle::Particle;
 use crate::simulator::Scheduler;
-use crate::simulator::{NDIMS, PERIODICITIES};
+use crate::simulator::{Domain, NDIMS};
 
 use super::{Event, EventType};
 
@@ -28,12 +28,13 @@ pub struct WallReflection {
 
 impl WallReflection {
     pub fn schedule(
-        lengths: &[f64; NDIMS],
+        domain: &Domain,
         time: f64,
         cell: &Rc<RefCell<Cell>>,
         dim: usize,
         p: &Rc<RefCell<Particle>>,
     ) -> Option<Event> {
+        let periodicities: &[bool; NDIMS] = &domain.periodicities;
         // boundary conditions, only used when the direction is non-periodic
         let boundary_conditions: [Extrema<BoundaryCondition>; NDIMS] = [
             Extrema::<BoundaryCondition> {
@@ -48,7 +49,7 @@ impl WallReflection {
         let p_old: Ref<Particle> = p.borrow();
         let (dt, p_new_vel, p_new_val): (f64, MyVec, f64) = {
             // schedule only if the direction is wall-bounded (non-periodic)
-            let periodicity: bool = PERIODICITIES[dim];
+            let periodicity: bool = periodicities[dim];
             if periodicity {
                 return None;
             }
@@ -94,7 +95,7 @@ impl WallReflection {
         }
         let event = WallReflection {
             p_old: p.clone(),
-            p_new_pos: Particle::get_new_pos(lengths, p_old.pos, p_old.vel, dt),
+            p_new_pos: Particle::get_new_pos(domain, p_old.pos, p_old.vel, dt),
             p_new_vel,
             p_new_val,
         };
@@ -105,7 +106,7 @@ impl WallReflection {
         Some(event)
     }
 
-    pub fn execute(&self, lengths: &[f64; NDIMS], time: f64, scheduler: &mut Scheduler) {
+    pub fn execute(&self, domain: &Domain, time: f64, scheduler: &mut Scheduler) {
         let p: &Rc<RefCell<Particle>> = &self.p_old;
         {
             let mut p: RefMut<Particle> = p.borrow_mut();
@@ -121,7 +122,7 @@ impl WallReflection {
         }
         // reschedule all events related to these two particles
         for cell in p.borrow().cells.iter() {
-            super::schedule_events(lengths, p, cell, scheduler);
+            super::schedule_events(domain, p, cell, scheduler);
         }
     }
 }

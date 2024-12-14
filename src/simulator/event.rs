@@ -11,7 +11,7 @@ use std::rc::Rc;
 use crate::simulator::cell::Cell;
 use crate::simulator::particle::Particle;
 use crate::simulator::scheduler::Scheduler;
-use crate::simulator::NDIMS;
+use crate::simulator::{Domain, NDIMS};
 
 use inter_particle_collision::InterParticleCollision;
 use move_out_of_cell::MoveOutOfCell;
@@ -65,7 +65,7 @@ fn insert_event(new_event: Event, cell: &Rc<RefCell<Cell>>, scheduler: &mut Sche
 }
 
 /// For each cell, checks events and inserts them if applicable.
-pub fn init_events(lengths: &[f64; NDIMS], cells: &[Rc<RefCell<Cell>>], scheduler: &mut Scheduler) {
+pub fn init_events(domain: &Domain, cells: &[Rc<RefCell<Cell>>], scheduler: &mut Scheduler) {
     let time: f64 = 0.;
     for cell in cells.iter() {
         let cell_borrowed: Ref<Cell> = cell.borrow();
@@ -77,7 +77,7 @@ pub fn init_events(lengths: &[f64; NDIMS], cells: &[Rc<RefCell<Cell>>], schedule
         let particles: Ref<Vec<Rc<RefCell<Particle>>>> = cell_borrowed.particles.borrow();
         for (n, p) in particles.iter().enumerate() {
             for q in particles[n + 1..].iter() {
-                if let Some(event) = InterParticleCollision::schedule(lengths, time, cell, p, q) {
+                if let Some(event) = InterParticleCollision::schedule(domain, time, cell, p, q) {
                     insert_event(event, cell, scheduler);
                 }
             }
@@ -85,17 +85,17 @@ pub fn init_events(lengths: &[f64; NDIMS], cells: &[Rc<RefCell<Cell>>], schedule
         // append boundary events
         for p in particles.iter() {
             for dim in 0..NDIMS {
-                if let Some(event) = MoveToNeighbour::schedule(lengths, time, cell, dim, p) {
+                if let Some(event) = MoveToNeighbour::schedule(domain, time, cell, dim, p) {
                     insert_event(event, cell, scheduler);
                 }
             }
             for dim in 0..NDIMS {
-                if let Some(event) = MoveOutOfCell::schedule(lengths, time, cell, dim, p) {
+                if let Some(event) = MoveOutOfCell::schedule(domain, time, cell, dim, p) {
                     insert_event(event, cell, scheduler);
                 }
             }
             for dim in 0..NDIMS {
-                if let Some(event) = WallReflection::schedule(lengths, time, cell, dim, p) {
+                if let Some(event) = WallReflection::schedule(domain, time, cell, dim, p) {
                     insert_event(event, cell, scheduler);
                 }
             }
@@ -105,7 +105,7 @@ pub fn init_events(lengths: &[f64; NDIMS], cells: &[Rc<RefCell<Cell>>], schedule
 
 /// Checks and inserts new events related to "p" into the series of events
 fn schedule_events(
-    lengths: &[f64; NDIMS],
+    domain: &Domain,
     p: &Rc<RefCell<Particle>>,
     cell: &Rc<RefCell<Cell>>,
     scheduler: &mut Scheduler,
@@ -125,29 +125,29 @@ fn schedule_events(
             continue;
         }
         let mut q: RefMut<Particle> = q.borrow_mut();
-        q.pos = Particle::get_new_pos(lengths, q.pos, q.vel, time - q.time);
+        q.pos = Particle::get_new_pos(domain, q.pos, q.vel, time - q.time);
         q.time = time;
     }
     for q in qs.iter() {
         if Rc::ptr_eq(p, q) {
             continue;
         }
-        if let Some(event) = InterParticleCollision::schedule(lengths, time, cell, p, q) {
+        if let Some(event) = InterParticleCollision::schedule(domain, time, cell, p, q) {
             insert_event(event, cell, scheduler);
         }
     }
     for dim in 0..NDIMS {
-        if let Some(event) = MoveToNeighbour::schedule(lengths, time, cell, dim, p) {
+        if let Some(event) = MoveToNeighbour::schedule(domain, time, cell, dim, p) {
             insert_event(event, cell, scheduler);
         }
     }
     for dim in 0..NDIMS {
-        if let Some(event) = MoveOutOfCell::schedule(lengths, time, cell, dim, p) {
+        if let Some(event) = MoveOutOfCell::schedule(domain, time, cell, dim, p) {
             insert_event(event, cell, scheduler);
         }
     }
     for dim in 0..NDIMS {
-        if let Some(event) = WallReflection::schedule(lengths, time, cell, dim, p) {
+        if let Some(event) = WallReflection::schedule(domain, time, cell, dim, p) {
             insert_event(event, cell, scheduler);
         }
     }
@@ -196,7 +196,7 @@ fn cancel_events(p: &Rc<RefCell<Particle>>, cell: &Rc<RefCell<Cell>>, scheduler:
 /// 2. Updates involved particles, e.g. updating velocity
 /// 3. Cancels out-dated events and reschedule new events
 pub fn process_events(
-    lengths: &[f64; NDIMS],
+    domain: &Domain,
     particles: &[Rc<RefCell<Particle>>],
     cells: &[Rc<RefCell<Cell>>],
     scheduler: &mut Scheduler,
@@ -227,13 +227,13 @@ pub fn process_events(
                 // update particle positions / velocities,
                 //   cancel all involved events,
                 //   reschedule events in all involved cells
-                event.execute(lengths, time, scheduler);
+                event.execute(domain, time, scheduler);
             }
             EventType::MoveToNeighbour(event) => {
                 // one particle is almost getting out of the cell
                 // I need to tell the information of it to the neighbouring cell
                 //   which is present in the direction of the particle motion
-                event.execute(lengths, time, scheduler, cells);
+                event.execute(domain, time, scheduler, cells);
             }
             EventType::MoveOutOfCell(event) => {
                 // one particle has left the cell
@@ -244,12 +244,12 @@ pub fn process_events(
             EventType::WallReflection(event) => {
                 // update particle reflecting on the wall
                 // NOTE: only when the direction is not periodic
-                event.execute(lengths, time, scheduler);
+                event.execute(domain, time, scheduler);
             }
             EventType::Synchronisation(event) => {
                 // update all particles to the desired time to synchronise for output
                 // after this event exit the loop to draw state
-                event.execute(lengths, time, sync_rate, particles, scheduler);
+                event.execute(domain, time, sync_rate, particles, scheduler);
                 break time;
             }
         }

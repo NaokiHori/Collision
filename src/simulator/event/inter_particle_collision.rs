@@ -5,7 +5,7 @@ use crate::myvec::MyVec;
 use crate::simulator::cell::Cell;
 use crate::simulator::particle::Particle;
 use crate::simulator::scheduler::Scheduler;
-use crate::simulator::NDIMS;
+use crate::simulator::{Domain, NDIMS};
 
 use super::util;
 use super::{Event, EventType};
@@ -34,12 +34,13 @@ pub struct InterParticleCollision {
 
 impl InterParticleCollision {
     pub fn schedule(
-        lengths: &[f64; NDIMS],
+        domain: &Domain,
         time: f64,
         cell: &Rc<RefCell<Cell>>,
         p: &Rc<RefCell<Particle>>,
         q: &Rc<RefCell<Particle>>,
     ) -> Option<Event> {
+        let lengths: &[f64; NDIMS] = &domain.lengths;
         let gravity = MyVec::new([0., -0.5]);
         let p_old: Ref<Particle> = p.borrow();
         let q_old: Ref<Particle> = q.borrow();
@@ -100,8 +101,8 @@ impl InterParticleCollision {
             f64,
             f64,
         ) = {
-            let p_new_pos: MyVec = Particle::get_new_pos(lengths, p_old.pos, p_old.vel, dt);
-            let q_new_pos: MyVec = Particle::get_new_pos(lengths, q_old.pos, q_old.vel, dt);
+            let p_new_pos: MyVec = Particle::get_new_pos(domain, p_old.pos, p_old.vel, dt);
+            let q_new_pos: MyVec = Particle::get_new_pos(domain, q_old.pos, q_old.vel, dt);
             let new_val: f64 = 0.5 * p_old.val + 0.5 * q_old.val;
             let p_new_val: f64 = new_val;
             let q_new_val: f64 = new_val;
@@ -151,7 +152,7 @@ impl InterParticleCollision {
         Some(event)
     }
 
-    pub fn execute(&self, lengths: &[f64; NDIMS], time: f64, scheduler: &mut Scheduler) {
+    pub fn execute(&self, domain: &Domain, time: f64, scheduler: &mut Scheduler) {
         let p: &Rc<RefCell<Particle>> = &self.p_old;
         let q: &Rc<RefCell<Particle>> = &self.q_old;
         // update particles
@@ -177,10 +178,10 @@ impl InterParticleCollision {
         }
         // reschedule all events related to these two particles
         for cell in p.borrow().cells.iter() {
-            super::schedule_events(lengths, p, cell, scheduler);
+            super::schedule_events(domain, p, cell, scheduler);
         }
         for cell in q.borrow().cells.iter() {
-            super::schedule_events(lengths, q, cell, scheduler);
+            super::schedule_events(domain, q, cell, scheduler);
         }
     }
 }

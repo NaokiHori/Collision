@@ -4,7 +4,7 @@ use std::rc::Rc;
 use crate::simulator::event::Event;
 use crate::simulator::extrema::Extrema;
 use crate::simulator::particle::Particle;
-use crate::simulator::NDIMS;
+use crate::simulator::{Domain, NDIMS};
 
 /// Reference cell size.
 ///
@@ -99,7 +99,8 @@ impl Cell {
     }
 }
 
-pub fn init_cells(lengths: &[f64; NDIMS]) -> ([usize; NDIMS], Vec<Rc<RefCell<Cell>>>) {
+pub fn init_cells(domain: &Domain) -> ([usize; NDIMS], Vec<Rc<RefCell<Cell>>>) {
+    let lengths: &[f64; NDIMS] = &domain.lengths;
     // decide number of cells
     let ncells: [usize; NDIMS] = [
         // require at least three cells for each direction

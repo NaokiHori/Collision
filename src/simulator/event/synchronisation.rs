@@ -4,7 +4,7 @@ use std::rc::Rc;
 use crate::simulator::cell::Cell;
 use crate::simulator::particle::{find_minimum_distance, Particle};
 use crate::simulator::scheduler::Scheduler;
-use crate::simulator::NDIMS;
+use crate::simulator::Domain;
 
 use super::{Event, EventType};
 
@@ -24,7 +24,7 @@ impl Synchronisation {
 
     pub fn execute(
         &self,
-        lengths: &[f64; NDIMS],
+        domain: &Domain,
         time: f64,
         sync_rate: f64,
         particles: &[Rc<RefCell<Particle>>],
@@ -33,7 +33,7 @@ impl Synchronisation {
         // update all particles
         for particle in particles.iter() {
             let mut p: RefMut<Particle> = particle.borrow_mut();
-            p.pos = Particle::get_new_pos(lengths, p.pos, p.vel, time - p.time);
+            p.pos = Particle::get_new_pos(domain, p.pos, p.vel, time - p.time);
             p.time = time;
         }
         // schedule next synchronisation
@@ -45,7 +45,7 @@ impl Synchronisation {
         // check stats, only for binary crate without optimisation
         if cfg!(debug_assertions) {
             check_energy(time, particles);
-            check_distance(lengths, time, particles);
+            check_distance(domain, time, particles);
         }
     }
 }
@@ -64,13 +64,13 @@ fn check_energy(time: f64, particles: &[Rc<RefCell<Particle>>]) {
 }
 
 #[allow(dead_code)]
-fn check_distance(lengths: &[f64; NDIMS], time: f64, particles: &[Rc<RefCell<Particle>>]) {
+fn check_distance(domain: &Domain, time: f64, particles: &[Rc<RefCell<Particle>>]) {
     let mut min: f64 = f64::MAX;
     for (n, p) in particles.iter().enumerate() {
         let p: Ref<Particle> = p.borrow();
         for q in particles[n + 1..].iter() {
             let q: Ref<Particle> = q.borrow();
-            let mut dist: f64 = find_minimum_distance(lengths, p.pos, q.pos);
+            let mut dist: f64 = find_minimum_distance(domain, p.pos, q.pos);
             dist -= p.rad + q.rad;
             min = min.min(dist);
         }
