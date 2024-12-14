@@ -4,6 +4,7 @@ mod event;
 mod extrema;
 pub mod particle;
 mod scheduler;
+mod util;
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -12,8 +13,7 @@ use cell::Cell;
 pub use particle::Particle;
 use scheduler::Scheduler;
 
-// TODO: for now only 2 is available
-pub const NDIMS: usize = 2;
+pub const NDIMS: usize = 2usize;
 
 pub struct Domain {
     lengths: [f64; NDIMS],

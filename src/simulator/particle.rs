@@ -5,6 +5,7 @@ use crate::myvec::MyVec;
 use crate::random::Random;
 use crate::simulator::cell::Cell;
 use crate::simulator::extrema::Extrema;
+use crate::simulator::util::vec_to_array;
 use crate::simulator::{Domain, NDIMS};
 
 /// Particle radius, to be consistent with the cell size.
@@ -289,25 +290,18 @@ pub fn init_particles(
         let (pos, cell_indices): (MyVec, Vec<usize>) = 'find_no_overlap: loop {
             // choose position randomly
             let pos0: MyVec = {
-                let x: f64 = {
-                    let min: f64 = if periodicities[0] { 0. } else { rad };
-                    let max: f64 = if periodicities[0] {
-                        lengths[0]
-                    } else {
-                        lengths[0] - rad
-                    };
-                    rng.gen_range(min, max)
-                };
-                let y: f64 = {
-                    let min: f64 = if periodicities[1] { 0. } else { rad };
-                    let max: f64 = if periodicities[1] {
-                        lengths[1]
-                    } else {
-                        lengths[1] - rad
-                    };
-                    rng.gen_range(min, max)
-                };
-                MyVec::new([x, y])
+                let pos: Vec<f64> = (0..NDIMS)
+                    .map(|dim: usize| {
+                        let min: f64 = if periodicities[dim] { 0. } else { rad };
+                        let max: f64 = if periodicities[dim] {
+                            lengths[dim]
+                        } else {
+                            lengths[dim] - rad
+                        };
+                        rng.gen_range(min, max)
+                    })
+                    .collect::<Vec<f64>>();
+                MyVec::new(vec_to_array::<f64>(pos))
             };
             // get all cells to which this particle will belong
             let cell_indices: Vec<usize> = from_p_to_c(lengths, ncells, rad, &pos0);
@@ -326,7 +320,9 @@ pub fn init_particles(
             }
             break (pos0, cell_indices);
         };
-        let vel = MyVec::new([rng.gen_range(-1., 1.), rng.gen_range(-1., 1.)]);
+        let vel = MyVec::new(vec_to_array::<f64>(
+            (0..NDIMS).map(|_| rng.gen_range(-1., 1.)).collect(),
+        ));
         let val: f64 = if pos[0] / lengths[0] < pos[1] / lengths[1] {
             1.
         } else {

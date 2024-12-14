@@ -36,16 +36,20 @@ impl WallReflection {
     ) -> Option<Event> {
         let periodicities: &[bool; NDIMS] = &domain.periodicities;
         // boundary conditions, only used when the direction is non-periodic
-        let boundary_conditions: [Extrema<BoundaryCondition>; NDIMS] = [
-            Extrema::<BoundaryCondition> {
-                min: BoundaryCondition::Neumann,
-                max: BoundaryCondition::Neumann,
-            },
-            Extrema::<BoundaryCondition> {
-                min: BoundaryCondition::Dirichlet(0.),
-                max: BoundaryCondition::Dirichlet(1.),
-            },
-        ];
+        let boundary_conditions: [Extrema<BoundaryCondition>; NDIMS] =
+            periodicities.map(|periodicity: bool| {
+                if periodicity {
+                    Extrema::<BoundaryCondition> {
+                        min: BoundaryCondition::Neumann,
+                        max: BoundaryCondition::Neumann,
+                    }
+                } else {
+                    Extrema::<BoundaryCondition> {
+                        min: BoundaryCondition::Dirichlet(0.),
+                        max: BoundaryCondition::Dirichlet(1.),
+                    }
+                }
+            });
         let p_old: Ref<Particle> = p.borrow();
         let (dt, p_new_vel, p_new_val): (f64, MyVec, f64) = {
             // schedule only if the direction is wall-bounded (non-periodic)

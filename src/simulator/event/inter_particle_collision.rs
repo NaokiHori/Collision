@@ -41,7 +41,12 @@ impl InterParticleCollision {
         q: &Rc<RefCell<Particle>>,
     ) -> Option<Event> {
         let lengths: &[f64; NDIMS] = &domain.lengths;
-        let gravity = MyVec::new([0., -0.5]);
+        let gravity = {
+            let gravity = domain
+                .periodicities
+                .map(|periodicity: bool| if periodicity { 0f64 } else { -0.5f64 });
+            MyVec::new(gravity)
+        };
         let p_old: Ref<Particle> = p.borrow();
         let q_old: Ref<Particle> = q.borrow();
         // x0' = x0 + v0 dt
