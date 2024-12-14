@@ -15,7 +15,7 @@ use scheduler::Scheduler;
 // TODO: for now only 2 is available
 pub const NDIMS: usize = 2;
 
-pub const PERIODICITIES: [bool; NDIMS] = [true, false];
+const PERIODICITIES: [bool; NDIMS] = [true, false];
 
 pub struct Simulator {
     lengths: [f64; NDIMS],
