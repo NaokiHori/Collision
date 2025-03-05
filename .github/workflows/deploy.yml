@@ -43,7 +43,7 @@ jobs:
             vite build \
             --outDir=${{ env.ASSETS }} \
             --base=https://naokihori.github.io/Collision/
-          cp thumbnail.jpg ${{ env.ASSETS }}/
+          cp cover.jpg ${{ env.ASSETS }}/
       - name: Setup GitHub Pages
         uses: actions/configure-pages@main
       - name: Upload HTML

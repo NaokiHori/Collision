@@ -6,7 +6,7 @@
 
 [![YouTube](https://img.shields.io/badge/youtube-%23EE4831.svg?&style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/k8hbpa3CsCg)
 
-[![Thumbnail](https://github.com/NaokiHori/Collision/blob/main/thumbnail.jpg)](https://youtu.be/k8hbpa3CsCg)
+[![Cover Image](https://github.com/NaokiHori/Collision/blob/main/cover.jpg)](https://youtu.be/k8hbpa3CsCg)
 
 ## Overview
 
