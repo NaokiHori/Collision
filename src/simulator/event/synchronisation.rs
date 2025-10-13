@@ -59,7 +59,7 @@ fn check_energy(time: f64, particles: &[Rc<RefCell<Particle>>]) {
         energy += 0.5 * p.vel * p.vel;
     }
     let mut content = String::new();
-    content += format!("{:+22.15e} {:+22.15e}", time, energy).as_str();
+    content += format!("{time:+22.15e} {energy:+22.15e}").as_str();
     save("energy.dat", &content);
 }
 
@@ -76,7 +76,7 @@ fn check_distance(domain: &Domain, time: f64, particles: &[Rc<RefCell<Particle>>
         }
     }
     let mut content = String::new();
-    content += format!("{:+22.15e} {:+22.15e}", time, min).as_str();
+    content += format!("{time:+22.15e} {min:+22.15e}").as_str();
     save("distance.dat", &content);
 }
 
@@ -89,15 +89,15 @@ fn save(filename: &str, content: &str) {
     {
         Ok(file) => file,
         Err(e) => {
-            eprintln!("\"{}\": {}", filename, e);
+            eprintln!("\"{filename}\": {e}");
             return;
         }
     };
     use std::io::Write;
-    match writeln!(file, "{}", content) {
+    match writeln!(file, "{content}") {
         Ok(_) => {}
         Err(e) => {
-            eprintln!("\"{}\": {}", filename, e)
+            eprintln!("\"{filename}\": {e}");
         }
     };
 }

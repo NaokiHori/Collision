@@ -148,7 +148,7 @@ impl Scheduler {
         for n in 0..nitems {
             let cell_index: usize = heap[n].borrow().index;
             let data: f64 = self.get_data(heap, n);
-            println!("{:2}, c idx: {:2}, data: {:8.2e}", n, cell_index, data);
+            println!("{n:2}, c idx: {cell_index:2}, data: {data:8.2e}");
         }
     }
 }

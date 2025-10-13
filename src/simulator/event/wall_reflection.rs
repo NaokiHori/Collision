@@ -72,7 +72,7 @@ impl WallReflection {
                 let bound: f64 = cell.borrow().bounds[dim].min;
                 let dpos: f64 = bound + rad - pos;
                 let mut p_new_vel: MyVec = p_old.vel;
-                p_new_vel[dim] = -1. * vel;
+                p_new_vel[dim] = -vel;
                 let p_new_val: f64 = match boundary_conditions[dim].min {
                     BoundaryCondition::Dirichlet(val) => 0.5 * (val + p_old.val),
                     BoundaryCondition::Neumann => p_old.val,
@@ -86,7 +86,7 @@ impl WallReflection {
                 let bound: f64 = cell.borrow().bounds[dim].max;
                 let dpos: f64 = bound - rad - pos;
                 let mut p_new_vel: MyVec = p_old.vel;
-                p_new_vel[dim] = -1. * vel;
+                p_new_vel[dim] = -vel;
                 let p_new_val: f64 = match boundary_conditions[dim].max {
                     BoundaryCondition::Dirichlet(val) => 0.5 * (val + p_old.val),
                     BoundaryCondition::Neumann => p_old.val,

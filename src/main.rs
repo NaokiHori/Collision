@@ -19,7 +19,7 @@ fn main() {
     loop {
         simulator.integrate();
         time += sync_rate;
-        println!("time: {:8.2e}", time);
+        println!("time: {time:8.2e}");
         let _ = save_particles(&lengths, &simulator);
         if time_max <= time {
             break;

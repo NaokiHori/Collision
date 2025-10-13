@@ -136,10 +136,10 @@ pub fn init_cells(domain: &Domain) -> ([usize; NDIMS], Vec<Rc<RefCell<Cell>>>) {
     // decide number of cells
     // require at least three cells for each direction
     let ncells: [usize; NDIMS] = {
-        let mut ncells = Vec::<usize>::with_capacity(NDIMS);
-        for dim in 0..NDIMS {
-            ncells.push(3usize.max((lengths[dim] / CELL_SIZE) as usize));
-        }
+        let ncells: Vec<usize> = lengths
+            .iter()
+            .map(|length: &f64| 3usize.max((length / CELL_SIZE) as usize))
+            .collect();
         vec_to_array(ncells)
     };
     // create cells
@@ -149,9 +149,11 @@ pub fn init_cells(domain: &Domain) -> ([usize; NDIMS], Vec<Rc<RefCell<Cell>>>) {
         let bounds: [Extrema<f64>; NDIMS] = {
             let mut bounds = Vec::<Extrema<f64>>::with_capacity(NDIMS);
             for dim in 0..NDIMS {
+                let i0 = indices[dim];
+                let i1 = indices[dim] + 1;
                 bounds.push(Extrema::<f64> {
-                    min: lengths[dim] / ncells[dim] as f64 * (indices[dim] + 0) as f64,
-                    max: lengths[dim] / ncells[dim] as f64 * (indices[dim] + 1) as f64,
+                    min: lengths[dim] / ncells[dim] as f64 * i0 as f64,
+                    max: lengths[dim] / ncells[dim] as f64 * i1 as f64,
                 });
             }
             vec_to_array::<Extrema<f64>>(bounds)
